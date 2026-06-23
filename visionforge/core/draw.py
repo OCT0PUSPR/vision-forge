@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import List, Optional, Sequence, Tuple
 
-from visionforge.core.schema import Detection, FrameResult
+from visionforge.core.schema import FrameResult
 
 RGB = Tuple[int, int, int]
 
