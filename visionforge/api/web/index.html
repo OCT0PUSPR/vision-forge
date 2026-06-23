@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>vision-forge &mdash; real-time computer vision</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%A5%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">&#128293;</span>
+        <span class="brand-name">vision-<strong>forge</strong></span>
+        <span class="pill" id="version-pill">v0.0.0</span>
+      </div>
+      <div class="status" id="conn-status">
+        <span class="dot offline" id="conn-dot"></span>
+        <span id="conn-label">disconnected</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="controls card">
+        <h2>Controls</h2>
+
+        <label class="field">
+          <span>Task</span>
+          <select id="task-select">
+            <option value="detection">Object Detection</option>
+            <option value="segmentation">Instance Segmentation</option>
+            <option value="pose">Pose / Keypoints</option>
+            <option value="tracking">Multi-Object Tracking</option>
+            <option value="classification">Image Classification</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Backend</span>
+          <select id="backend-select">
+            <option value="">auto</option>
+            <option value="yolo">YOLO (ultralytics)</option>
+            <option value="hf">HuggingFace (transformers)</option>
+          </select>
+        </label>
+
+        <div class="field-row">
+          <button id="btn-webcam" class="btn">Start Webcam</button>
+          <button id="btn-stop" class="btn ghost" disabled>Stop</button>
+        </div>
+
+        <div
+          id="dropzone"
+          class="dropzone"
+          tabindex="0"
+          aria-label="Drop an image here or click to upload"
+        >
+          <p>&#128193; Drag &amp; drop an image</p>
+          <p class="muted">or click to browse</p>
+          <input id="file-input" type="file" accept="image/*" hidden />
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <span class="metric-value" id="fps-value">0.0</span>
+            <span class="metric-label">FPS</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="count-value">0</span>
+            <span class="metric-label">objects</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value" id="ms-value">0</span>
+            <span class="metric-label">ms</span>
+          </div>
+        </div>
+
+        <details class="legend">
+          <summary>Detected labels</summary>
+          <ul id="label-list" class="label-list"></ul>
+        </details>
+      </section>
+
+      <section class="stage card">
+        <div class="canvas-wrap">
+          <canvas id="view" width="640" height="480"></canvas>
+          <video id="webcam" autoplay playsinline muted hidden></video>
+          <div class="overlay-hint" id="overlay-hint">
+            Start the webcam or drop an image to begin.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span
+        >vision-forge &middot; MIT &middot; built by OCT0PUSPR &middot;
+        <a href="/models" target="_blank" rel="noopener">/models</a> &middot;
+        <a href="/health" target="_blank" rel="noopener">/health</a></span
+      >
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

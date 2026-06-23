@@ -1,0 +1,26 @@
+# vision-forge full runtime dependencies.
+# Heavy ML deps (torch, ultralytics, transformers) are needed only for real
+# inference. For the lightweight test/CI path use requirements-min.txt.
+
+# --- web / API ---
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27,<1.0
+python-multipart>=0.0.9
+websockets>=12.0
+httpx>=0.27
+
+# --- config / validation ---
+pydantic>=2.6,<3.0
+pydantic-settings>=2.2,<3.0
+
+# --- imaging ---
+numpy>=1.24,<3.0
+opencv-python-headless>=4.9
+pillow>=10.2
+
+# --- ML engines (HEAVY / OPTIONAL) ---
+# torch is large; install the build matching your platform/CUDA from
+# https://pytorch.org if the default wheel does not fit your setup.
+torch>=2.1
+ultralytics>=8.1
+transformers>=4.38

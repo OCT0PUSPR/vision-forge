@@ -1,0 +1,19 @@
+# Lightweight dependency set for tests / CI / the no-GPU path.
+# Deliberately excludes torch / ultralytics / transformers. The schema, drawing
+# helpers, encoding helpers, config and API surface all import-guard the heavy
+# bits, so the unit tests run fully on this set.
+
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27,<1.0
+python-multipart>=0.0.9
+websockets>=12.0
+httpx>=0.27
+
+pydantic>=2.6,<3.0
+pydantic-settings>=2.2,<3.0
+
+numpy>=1.24,<3.0
+pillow>=10.2
+
+pytest>=8.0
+ruff>=0.3
