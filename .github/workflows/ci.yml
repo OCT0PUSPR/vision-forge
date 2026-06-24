@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint-and-test:
-    name: Lint & Test (py${{ matrix.python-version }})
+  quality-gate:
+    name: Quality gate (py${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -28,27 +28,62 @@ jobs:
       - name: Install lightweight dependencies
         run: |
           python -m pip install --upgrade pip
-          # Heavy ML deps (torch/ultralytics/transformers) are intentionally
-          # NOT installed; all heavy imports are guarded so the unit tests and
-          # lint run on the minimal set.
+          # Heavy ML deps (torch/torchvision/ultralytics/transformers) are
+          # intentionally NOT installed; every heavy import is guarded so the
+          # full quality gate runs on the minimal set. The from-scratch
+          # CenterNet's numpy-only pieces (targets, mAP metric) are covered
+          # here; its torch pieces are covered by the optional ml-tests job.
           pip install -r requirements-min.txt
 
       - name: Byte-compile all sources
         run: |
-          python -m compileall visionforge tests examples
+          python -m compileall visionforge tests examples scripts
 
       - name: Lint (ruff)
         run: |
-          ruff check visionforge tests examples
+          ruff check visionforge tests examples scripts
 
-      - name: Run unit tests
+      - name: Type-check (mypy)
         run: |
-          pytest -q
+          mypy visionforge
+
+      - name: Security scan (bandit)
+        run: |
+          bandit -r visionforge -q -c pyproject.toml
+
+      - name: Run unit tests with coverage (>=80% on core)
+        run: |
+          # Torch-gated CenterNet tests skip automatically without torch; the
+          # coverage gate (fail_under=80) is enforced on the core package.
+          pytest -q --cov=visionforge --cov-report=term-missing
+
+  ml-tests:
+    name: ML tests (from-scratch CenterNet, torch CPU)
+    runs-on: ubuntu-latest
+    # Non-blocking by design: exercises the torch model/loss/decode/infer path.
+    # Does not gate the green light-path build, but proves the ML code on CI.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install training deps (CPU torch)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-min.txt
+          pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          pip install onnx onnxruntime
+      - name: Run CenterNet torch tests (model + loss + decode + ONNX export)
+        run: |
+          pytest -q tests/test_centernet_model.py tests/test_centernet_infer.py \
+                    tests/test_centernet_targets.py tests/test_centernet_metrics.py
 
   docker-build:
     name: Docker image builds
     runs-on: ubuntu-latest
-    needs: lint-and-test
+    needs: quality-gate
     steps:
       - uses: actions/checkout@v4
       - name: Build image (no push)

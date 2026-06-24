@@ -66,9 +66,7 @@ def _add_serve_parser(sub: "argparse._SubParsersAction") -> None:
 
 
 def _add_demo_parser(sub: "argparse._SubParsersAction") -> None:
-    p = sub.add_parser(
-        "demo-image", help="Write a synthetic demo image to disk (no model needed)."
-    )
+    p = sub.add_parser("demo-image", help="Write a synthetic demo image to disk (no model needed).")
     p.add_argument("--out", default="demo.jpg")
     p.add_argument("--width", type=int, default=640)
     p.add_argument("--height", type=int, default=480)
@@ -93,9 +91,7 @@ def cmd_detect(args: argparse.Namespace) -> int:
     last_result = None
     annotate = not args.no_annotate
     n = 0
-    for idx, result, annotated in pipeline.run_stream(
-        source, max_frames=max_frames, annotate=annotate
-    ):
+    for idx, result, annotated in pipeline.run_stream(source, max_frames=max_frames, annotate=annotate):
         n += 1
         last_result = result
         if annotated is not None:

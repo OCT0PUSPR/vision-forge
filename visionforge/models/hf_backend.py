@@ -54,8 +54,7 @@ class HFDetectionBackend:
             from transformers import pipeline  # type: ignore
         except Exception as exc:  # pragma: no cover
             raise RuntimeError(
-                "The HF backend requires 'transformers' (and torch). "
-                "Install with: pip install transformers torch"
+                "The HF backend requires 'transformers' (and torch). Install with: pip install transformers torch"
             ) from exc
 
         device_index = self._device_index()
@@ -136,9 +135,7 @@ class HFClassificationBackend:
         try:
             from transformers import pipeline  # type: ignore
         except Exception as exc:  # pragma: no cover
-            raise RuntimeError(
-                "The HF classification backend requires 'transformers' (and torch)."
-            ) from exc
+            raise RuntimeError("The HF classification backend requires 'transformers' (and torch).") from exc
         device_index = 0 if self.device.startswith("cuda") else -1
         kwargs = {"model": self.model_id, "device": device_index}
         if self.hf_token:
@@ -157,9 +154,7 @@ class HFClassificationBackend:
         start = time.perf_counter()
         raw = self._pipe(pil, top_k=self.top_k)
         elapsed = (time.perf_counter() - start) * 1000.0
-        topk: List[Tuple[str, float]] = [
-            (item["label"], float(item["score"])) for item in raw
-        ]
+        topk: List[Tuple[str, float]] = [(item["label"], float(item["score"])) for item in raw]
         return FrameResult(
             detections=[],
             task="classification",

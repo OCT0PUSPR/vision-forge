@@ -129,11 +129,7 @@ class Detection:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Detection":
         kps = data.get("keypoints")
-        keypoints = (
-            [Keypoint(**kp) if isinstance(kp, dict) else Keypoint(*kp) for kp in kps]
-            if kps
-            else None
-        )
+        keypoints = [Keypoint(**kp) if isinstance(kp, dict) else Keypoint(*kp) for kp in kps] if kps else None
         return cls(
             label=data["label"],
             confidence=data["confidence"],
@@ -197,9 +193,7 @@ class FrameResult:
             "counts_by_label": self.count_by_label(),
             "detections": [d.to_dict() for d in self.detections],
             "classification": (
-                [[c[0], round(float(c[1]), 4)] for c in self.classification]
-                if self.classification
-                else None
+                [[c[0], round(float(c[1]), 4)] for c in self.classification] if self.classification else None
             ),
         }
 

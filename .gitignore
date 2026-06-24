@@ -34,7 +34,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# --- Model weights / artifacts (NEVER commit) ---
+# --- Model weights / artifacts (NEVER commit large weights) ---
 *.pt
 *.onnx
 *.engine
@@ -45,6 +45,14 @@ weights/
 data/
 datasets/
 runs/
+
+# Exception: the tiny (<25MB) from-scratch CenterNet PROOF checkpoint is
+# intentionally committed so the default detector works out of the box. The
+# large optimizer-bearing checkpoints and the VOC/COCO weights stay ignored.
+!weights/
+weights/*
+!weights/centernet_shapes.pt
+!weights/.gitkeep
 
 # --- Outputs ---
 *.jpg
@@ -64,3 +72,7 @@ demo.*
 .vscode/
 .DS_Store
 Thumbs.db
+*.db
+*.sqlite
+*.sqlite3
+yolov8n.pt

@@ -32,10 +32,25 @@ PALETTE: List[RGB] = [
 
 # COCO-style 17-keypoint skeleton (pairs of keypoint indices to connect).
 COCO_SKELETON: List[Tuple[int, int]] = [
-    (15, 13), (13, 11), (16, 14), (14, 12), (11, 12),
-    (5, 11), (6, 12), (5, 6), (5, 7), (6, 8),
-    (7, 9), (8, 10), (1, 2), (0, 1), (0, 2),
-    (1, 3), (2, 4), (3, 5), (4, 6),
+    (15, 13),
+    (13, 11),
+    (16, 14),
+    (14, 12),
+    (11, 12),
+    (5, 11),
+    (6, 12),
+    (5, 6),
+    (5, 7),
+    (6, 8),
+    (7, 9),
+    (8, 10),
+    (1, 2),
+    (0, 1),
+    (0, 2),
+    (1, 3),
+    (2, 4),
+    (3, 5),
+    (4, 6),
 ]
 
 
@@ -143,19 +158,15 @@ def draw_detections(
             try:
                 pts = np.array(det.mask, dtype=np.int32).reshape(-1, 1, 2)
                 cv2.fillPoly(overlay, [pts], bgr)
-            except Exception:
+            except Exception:  # nosec B110 - malformed mask must not abort drawing
                 pass
 
         cv2.rectangle(canvas, (x1, y1), (x2, y2), bgr, line_thickness)
 
         caption = format_label(det.label, det.confidence, det.track_id)
-        (tw, th), baseline = cv2.getTextSize(
-            caption, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1
-        )
+        (tw, th), baseline = cv2.getTextSize(caption, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)
         ty = max(y1, th + 4)
-        cv2.rectangle(
-            canvas, (x1, ty - th - baseline - 2), (x1 + tw + 2, ty), bgr, -1
-        )
+        cv2.rectangle(canvas, (x1, ty - th - baseline - 2), (x1 + tw + 2, ty), bgr, -1)
         text_color = rgb_to_bgr(contrasting_text_color(color))
         cv2.putText(
             canvas,

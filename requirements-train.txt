@@ -1,0 +1,21 @@
+# Training / ML dependencies for the from-scratch CenterNet detector.
+#
+# These are needed to TRAIN, EVALUATE, EXPORT and run the torch inference path
+# of the from-scratch model. The light CI / test path (requirements-min.txt)
+# does NOT need any of these — all torch imports are guarded, and the CenterNet
+# tests skip automatically when torch is unavailable.
+#
+# Install on the training box / Colab / your laptop with MPS:
+#     pip install -r requirements-train.txt
+#
+# Pick the torch build matching your platform/CUDA from https://pytorch.org if
+# the default wheel does not fit your setup (e.g. CUDA 12.x or Apple Silicon).
+
+torch>=2.1
+torchvision>=0.16          # nms / box ops + VOCDetection auto-download loader
+numpy>=1.24,<3.0
+pillow>=10.2
+opencv-python-headless>=4.9
+onnx>=1.15                 # for torch.onnx.export graph checking
+onnxruntime>=1.17          # torch-free ONNX inference path
+tqdm>=4.66

@@ -14,10 +14,23 @@ from typing import Any, List, Optional
 from visionforge.core.schema import Detection, FrameResult, Keypoint
 
 COCO_KEYPOINT_NAMES = [
-    "nose", "left_eye", "right_eye", "left_ear", "right_ear",
-    "left_shoulder", "right_shoulder", "left_elbow", "right_elbow",
-    "left_wrist", "right_wrist", "left_hip", "right_hip",
-    "left_knee", "right_knee", "left_ankle", "right_ankle",
+    "nose",
+    "left_eye",
+    "right_eye",
+    "left_ear",
+    "right_ear",
+    "left_shoulder",
+    "right_shoulder",
+    "left_elbow",
+    "right_elbow",
+    "left_wrist",
+    "right_wrist",
+    "left_hip",
+    "right_hip",
+    "left_knee",
+    "right_knee",
+    "left_ankle",
+    "right_ankle",
 ]
 
 
@@ -56,8 +69,7 @@ class YoloBackend:
             from ultralytics import YOLO  # type: ignore
         except Exception as exc:  # pragma: no cover
             raise RuntimeError(
-                "The YOLO backend requires the 'ultralytics' package. "
-                "Install it with: pip install ultralytics"
+                "The YOLO backend requires the 'ultralytics' package. Install it with: pip install ultralytics"
             ) from exc
         self._model = YOLO(self.model_id)
 
@@ -190,9 +202,7 @@ class YoloBackend:
                 x = float(kp[0])
                 y = float(kp[1])
                 conf = float(kp[2]) if len(kp) > 2 else 1.0
-                name = (
-                    COCO_KEYPOINT_NAMES[j] if j < len(COCO_KEYPOINT_NAMES) else None
-                )
+                name = COCO_KEYPOINT_NAMES[j] if j < len(COCO_KEYPOINT_NAMES) else None
                 kps.append(Keypoint(x=x, y=y, confidence=conf, name=name))
             out.append(kps)
         return out

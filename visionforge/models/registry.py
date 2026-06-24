@@ -14,9 +14,14 @@ from visionforge.config import Settings, get_settings
 # Tasks routed to each backend family.
 YOLO_TASKS = ("detection", "segmentation", "pose", "tracking")
 HF_TASKS = ("detection", "classification")
+ONNX_TASKS = ("detection",)
+CENTERNET_TASKS = ("detection",)
 
 VALID_TASKS = ("detection", "segmentation", "pose", "tracking", "classification")
-VALID_BACKENDS = ("yolo", "hf")
+# 'centernet' is the from-scratch detector (DEFAULT for detection).
+# 'baseline' is an explicit alias for the Ultralytics YOLO detector.
+# 'centernet-onnx' runs the from-scratch model through onnxruntime (torch-free).
+VALID_BACKENDS = ("centernet", "centernet-onnx", "yolo", "baseline", "hf", "onnx")
 
 
 class ModelRegistry:
@@ -30,36 +35,51 @@ class ModelRegistry:
     # ------------------------------------------------------------------ #
     # introspection
     # ------------------------------------------------------------------ #
+    # Map user-facing backend aliases to the canonical builder name.
+    _ALIASES = {"baseline": "yolo"}
+
     @staticmethod
     def available() -> List[Dict[str, Any]]:
         """List the task/backend combinations the registry knows about."""
         entries: List[Dict[str, Any]] = []
+        # From-scratch CenterNet is the default detector.
+        entries.append({"task": "detection", "backend": "centernet", "default": True})
+        entries.append({"task": "detection", "backend": "centernet-onnx"})
         for task in YOLO_TASKS:
             entries.append({"task": task, "backend": "yolo"})
+        entries.append({"task": "detection", "backend": "baseline"})  # alias of yolo
         entries.append({"task": "detection", "backend": "hf"})
         entries.append({"task": "classification", "backend": "hf"})
+        entries.append({"task": "detection", "backend": "onnx"})
         return entries
 
     def default_backend(self, task: str) -> str:
-        """Pick a sensible default backend for ``task``."""
+        """Pick a sensible default backend for ``task``.
+
+        Detection defaults to the from-scratch ``centernet`` unless overridden by
+        ``VF_DEFAULT_DETECTOR`` (e.g. ``baseline`` to use the YOLO path).
+        """
         if task == "classification":
             return "hf"
+        if task == "detection":
+            return getattr(self.settings, "default_detector", "centernet")
         return "yolo"
 
     def resolve(self, task: str, backend: Optional[str] = None) -> str:
         if task not in VALID_TASKS:
-            raise ValueError(
-                f"Unknown task {task!r}. Valid: {', '.join(VALID_TASKS)}"
-            )
+            raise ValueError(f"Unknown task {task!r}. Valid: {', '.join(VALID_TASKS)}")
         backend = backend or self.default_backend(task)
+        backend = self._ALIASES.get(backend, backend)
         if backend not in VALID_BACKENDS:
-            raise ValueError(
-                f"Unknown backend {backend!r}. Valid: {', '.join(VALID_BACKENDS)}"
-            )
+            raise ValueError(f"Unknown backend {backend!r}. Valid: {', '.join(VALID_BACKENDS)}")
         if backend == "yolo" and task not in YOLO_TASKS:
             raise ValueError(f"YOLO backend does not support task {task!r}")
         if backend == "hf" and task not in HF_TASKS:
             raise ValueError(f"HF backend does not support task {task!r}")
+        if backend == "onnx" and task not in ONNX_TASKS:
+            raise ValueError(f"ONNX backend does not support task {task!r}")
+        if backend in ("centernet", "centernet-onnx") and task not in CENTERNET_TASKS:
+            raise ValueError(f"CenterNet backend does not support task {task!r}")
         return backend
 
     # ------------------------------------------------------------------ #
@@ -77,6 +97,28 @@ class ModelRegistry:
     def _build(self, task: str, backend: str) -> Any:
         s = self.settings
         device = s.resolved_device
+        if backend == "centernet":
+            from visionforge.models.centernet.infer import CenterNetBackend
+
+            return CenterNetBackend(
+                checkpoint=s.centernet_checkpoint,
+                device=device,
+                conf=s.centernet_conf,
+                iou=s.centernet_iou,
+                image_size=s.centernet_image_size,
+                topk=s.centernet_topk,
+            )
+        if backend == "centernet-onnx":
+            from visionforge.models.centernet.infer import CenterNetOnnxBackend
+
+            return CenterNetOnnxBackend(
+                onnx_path=s.centernet_onnx_path,
+                device=device,
+                conf=s.centernet_conf,
+                iou=s.centernet_iou,
+                image_size=s.centernet_image_size,
+                topk=s.centernet_topk,
+            )
         if backend == "yolo":
             from visionforge.models.yolo_backend import YoloBackend
 
@@ -88,6 +130,16 @@ class ModelRegistry:
                 iou=s.iou_threshold,
                 image_size=s.image_size,
                 tracker=s.tracker,
+            )
+        if backend == "onnx":
+            from visionforge.models.onnx_backend import OnnxDetectionBackend
+
+            return OnnxDetectionBackend(
+                onnx_path=s.onnx_model_path,
+                device=device,
+                conf=s.conf_threshold,
+                iou=s.iou_threshold,
+                image_size=s.image_size,
             )
         # backend == "hf"
         if task == "classification":

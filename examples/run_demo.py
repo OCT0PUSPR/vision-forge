@@ -21,10 +21,7 @@ def main() -> None:
         from visionforge.pipeline import VisionPipeline
 
         pipeline = VisionPipeline(task="detection")
-        print(
-            f"Backend={pipeline.backend_name} "
-            f"device={pipeline.settings.resolved_device}"
-        )
+        print(f"Backend={pipeline.backend_name} device={pipeline.settings.resolved_device}")
         for idx, frame in frames:
             result = pipeline.infer_array(frame, frame_index=idx)
             print(f"[frame {idx}] {result.count_by_label()} ({result.inference_ms:.1f}ms)")

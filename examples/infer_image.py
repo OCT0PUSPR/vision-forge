@@ -14,6 +14,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Annotate a single image.")
     parser.add_argument("image", nargs="?", default=None, help="Image path (optional).")
     parser.add_argument("--task", default="detection")
+    parser.add_argument(
+        "--backend",
+        default=None,
+        help="centernet (from-scratch default) | baseline (YOLO) | hf | onnx | centernet-onnx",
+    )
     parser.add_argument("--out", default="annotated.jpg")
     args = parser.parse_args()
 
@@ -32,7 +37,7 @@ def main() -> None:
             raise SystemExit(f"Could not read image: {args.image}")
         frame = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
 
-    pipeline = VisionPipeline(task=args.task)
+    pipeline = VisionPipeline(task=args.task, backend=args.backend)
     result = pipeline.infer_array(frame)
     print("Detections:", result.count_by_label())
 

@@ -70,9 +70,7 @@ def rgb_array_to_bytes(image, mime: str = "image/jpeg", quality: int = 85) -> by
 
         bgr = cv2_from_rgb(image)
         ext = ".png" if mime.endswith("png") else ".jpg"
-        params = (
-            [cv2.IMWRITE_JPEG_QUALITY, quality] if ext == ".jpg" else []
-        )
+        params = [cv2.IMWRITE_JPEG_QUALITY, quality] if ext == ".jpg" else []
         ok, buf = cv2.imencode(ext, bgr, params)
         if not ok:
             raise ValueError("Failed to encode image")
