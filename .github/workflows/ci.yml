@@ -74,7 +74,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-min.txt
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install onnx onnxruntime
+          # onnx + onnxruntime for the export/inference path. onnxscript is a
+          # belt-and-suspenders: torch>=2.9 defaults to the dynamo ONNX exporter
+          # which needs it. export.py also pins dynamo=False, so either path works.
+          pip install onnx onnxruntime onnxscript
       - name: Run CenterNet torch tests (model + loss + decode + ONNX export)
         run: |
           pytest -q tests/test_centernet_model.py tests/test_centernet_infer.py \

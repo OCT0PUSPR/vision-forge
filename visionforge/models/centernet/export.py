@@ -38,18 +38,36 @@ def export_centernet_onnx(
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
 
     dummy = torch.randn(1, 3, size, size)
-    torch.onnx.export(
-        model,
-        (dummy,),
-        out_path,
-        input_names=["input"],
-        output_names=["hm", "wh", "offset"],
-        opset_version=opset,
-        dynamic_axes={
-            "input": {0: "batch"},
-            "hm": {0: "batch"},
-            "wh": {0: "batch"},
-            "offset": {0: "batch"},
-        },
-    )
+    dynamic_axes = {
+        "input": {0: "batch"},
+        "hm": {0: "batch"},
+        "wh": {0: "batch"},
+        "offset": {0: "batch"},
+    }
+    # Force the legacy TorchScript exporter. In torch >= 2.9 the torch.export
+    # (dynamo) exporter becomes the default, which pulls in ``onnxscript`` as a
+    # hard dependency; pinning ``dynamo=False`` keeps export working with just
+    # torch + onnx installed. The kwarg is absent on older torch, so we fall back
+    # gracefully if it is not accepted.
+    try:
+        torch.onnx.export(
+            model,
+            (dummy,),
+            out_path,
+            input_names=["input"],
+            output_names=["hm", "wh", "offset"],
+            opset_version=opset,
+            dynamic_axes=dynamic_axes,
+            dynamo=False,
+        )
+    except TypeError:  # pragma: no cover - very old torch without the dynamo kwarg
+        torch.onnx.export(
+            model,
+            (dummy,),
+            out_path,
+            input_names=["input"],
+            output_names=["hm", "wh", "offset"],
+            opset_version=opset,
+            dynamic_axes=dynamic_axes,
+        )
     return out_path

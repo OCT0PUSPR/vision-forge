@@ -15,6 +15,22 @@ pydantic-settings>=2.2,<3.0
 numpy>=1.24,<3.0
 pillow>=10.2
 
+# Light (non-torch) runtime deps that back PRODUCTION features and let the green
+# path actually exercise them. All are pure wheels with NO torch dependency, so
+# the green path stays torch-free while covering real production code:
+#   - opencv:           the file/webcam video iterator
+#   - prometheus-client:the /metrics endpoint
+#   - structlog:        structured JSON request logging
+#   - sqlalchemy:       the persistence layer (jobs/api-keys/audit, SQLite)
+#   - slowapi:          per-client API rate limiting
+#   - tenacity:         retry/backoff in the reliability layer
+opencv-python-headless>=4.9
+prometheus-client>=0.20
+structlog>=24.1
+sqlalchemy>=2.0,<3.0
+slowapi>=0.1.9
+tenacity>=8.2
+
 pytest>=8.0
 pytest-cov>=4.1
 ruff>=0.3
