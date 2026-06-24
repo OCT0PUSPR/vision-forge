@@ -105,7 +105,9 @@ def cmd_detect(args: argparse.Namespace) -> int:
         try:
             import cv2
 
-            cv2.imwrite(args.save, cv2.cvtColor(last_frame, cv2.COLOR_RGB2BGR))
+            # last_frame is a numpy array at runtime but typed as `object`
+            # (pipeline's optional annotated-frame); cv2 stubs are strict.
+            cv2.imwrite(args.save, cv2.cvtColor(last_frame, cv2.COLOR_RGB2BGR))  # type: ignore[call-overload]
             print(f"Saved annotated frame to {args.save}")
         except Exception as exc:  # noqa: BLE001
             print(f"Could not save image: {exc}", file=sys.stderr)
